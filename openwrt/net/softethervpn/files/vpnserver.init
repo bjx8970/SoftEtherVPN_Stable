@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+
+START=92
+STOP=8
+
+start() {
+	logger -t softethervpn "starting vpnserver"
+	/usr/libexec/softethervpn/vpnserver start
+}
+
+stop() {
+	logger -t softethervpn "stopping vpnserver"
+	/usr/libexec/softethervpn/vpnserver stop
+}

@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+
+START=92
+STOP=8
+
+start() {
+	logger -t softethervpn "starting vpnbridge"
+	/usr/libexec/softethervpn/vpnbridge start
+}
+
+stop() {
+	logger -t softethervpn "stopping vpnbridge"
+	/usr/libexec/softethervpn/vpnbridge stop
+}
