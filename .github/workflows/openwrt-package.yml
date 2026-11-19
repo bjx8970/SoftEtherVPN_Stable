@@ -1,0 +1,60 @@
+name: Build OpenWrt ARM64 Packages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'src/**'
+      - 'openwrt/**'
+      - '.github/workflows/openwrt-package.yml'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: OpenWrt release (DISTRIB_RELEASE)
+        type: string
+        default: '25.12.5'
+        required: true
+      target:
+        description: OpenWrt target/subtarget (DISTRIB_TARGET)
+        type: string
+        default: 'mediatek/filogic'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: OpenWrt ${{ inputs.release || '25.12.5' }} / ${{ inputs.target || 'mediatek/filogic' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang flex bison file gawk gettext git jq \
+            libelf-dev libncurses-dev libreadline-dev libssl-dev \
+            python3 python3-setuptools rsync swig unzip wget zlib1g-dev zstd
+
+      - name: Build ARM64 packages with the OpenWrt SDK
+        id: build
+        env:
+          OPENWRT_RELEASE: ${{ inputs.release || '25.12.5' }}
+          OPENWRT_TARGET: ${{ inputs.target || 'mediatek/filogic' }}
+          GIT_AUTHOR_NAME: OpenWrt CI
+          GIT_AUTHOR_EMAIL: ci@example.invalid
+          GIT_COMMITTER_NAME: OpenWrt CI
+          GIT_COMMITTER_EMAIL: ci@example.invalid
+        run: bash openwrt/build.sh
+
+      - name: Upload installable packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.artifact }}
+          path: openwrt-artifacts/
+          if-no-files-found: error
